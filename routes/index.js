@@ -3,39 +3,27 @@ var router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require("bcryptjs");
 const multer = require('multer');
-const upload = multer({ storage: multer.memoryStorage() });
+const admin = require('firebase-admin')
+const path = require("path");
 
 
 const userModel = require("../models/users.js");
-const firebase = require("../config//firebaseConfig.js");
+const postModel = require("../models/posts.js");
 
+const serviceAccount = require('../data/serviceAccountKey.json');
 
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+  storageBucket: 'gs://social-media-app-000.appspot.com',  
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+const bucket = admin.storage().bucket();
 
 router.get('/', isLoggedIn,  function(req, res, next) {
   res.render('index', { title: 'Express' });
-});
-
-router.get('/upload', isLoggedIn,  function(req, res, next) {
-   res.render('upload');
-});
-
-router.post('/upload', upload.single('image'), async(req, res) => {
-   try {
-      const file = req.file;
-      const fileRef = storage.ref().child(file.originalname);
-      await fileRef.put(file.buffer);
-      const downloadURL = await fileRef.getDownloadURL();
-      res.status(200).json({ downloadURL });
-   } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Failed to upload image.' });
-   }
-   
-});
-
-router.get('/profile', isLoggedIn, async function(req, res, next) {
-   let user = await userModel.findOne({username: req.user.username})
-   res.render('profile', {user: user});
 });
 
 router.get('/login', function(req, res, next) {
@@ -49,6 +37,21 @@ router.get('/register', function(req, res, next) {
 router.get('/logout', function(req, res, next) {
    res.cookie("token", "")
    res.redirect("/login")
+});
+
+router.get('/profile', isLoggedIn, async function(req, res, next) {
+   let user = await userModel.findOne({username: req.user.username})
+   res.render('profile', {user: user});
+});
+
+router.get('/upload', isLoggedIn, async function(req, res, next) {
+   let user = await userModel.findOne({username: req.user.username})
+   res.render('upload', {user});
+});
+
+router.get('/posts', isLoggedIn, async function(req, res, next) {
+   let user = await userModel.findOne({username: req.user.username})
+   res.render('posts', {user});
 });
 
 router.post('/register', async function(req, res, next) {
@@ -89,6 +92,37 @@ router.post('/login', async function(req, res, next) {
          res.redirect("/profile")
       }else return res.status(500).send("invalid username or password.")
    })
+});
+
+router.post('/upload', upload.single('image'), isLoggedIn, async(req, res) => {
+   try {
+    if (!req.file) {
+      return res.status(400)
+    }
+
+    const file = req.file;
+    const originalname = file.originalname;
+    const ext = path.extname(originalname);
+    const fileName = Date.now() + ext;
+    const fileUpload = bucket.file(fileName);
+    await fileUpload.save(file.buffer, {
+      metadata: {
+       contentType: file.mimetype
+      }
+    });
+
+   const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+   res.status(200)
+   
+   let user = await userModel.findOne({ username: req.user.username })
+   let post = await postModel.create({ user: user._id, posts: imageUrl })
+   user.posts.push(post._id)
+   await user.save()
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).send('Error uploading image.');
+  }
+   
 });
 
 function isLoggedIn(req, res, next) {

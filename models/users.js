@@ -28,7 +28,9 @@ const userSchema = mongoose.Schema({
          ref: "post"
       }
    ],
-   verified: Boolean
+   verified: Boolean,
+   dp: String,
+   cover: String
 })
 
 module.exports = mongoose.model('user', userSchema)
