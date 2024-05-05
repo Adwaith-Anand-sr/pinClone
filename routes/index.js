@@ -5,16 +5,29 @@ const bcrypt = require("bcryptjs");
 const multer = require('multer');
 const admin = require('firebase-admin')
 const path = require("path");
-
+const fs = require('fs');
 
 const userModel = require("../models/users.js");
 const postModel = require("../models/posts.js");
 
-const serviceAccount = require('../data/serviceAccountKey.json');
+require('dotenv').config();
+const serviceAccount = {
+  type: process.env.TYPE,
+  project_id: process.env.PROJECT_ID,
+  private_key_id: process.env.PRIVATE_KEY_ID,
+  private_key: process.env.PRIVATE_KEY,
+  client_email: process.env.CLIENT_EMAIL,
+  client_id: process.env.CLIENT_ID,
+  auth_uri: process.env.AUTH_URI,
+  token_uri: process.env.TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
+  universe_domain: process.env.UNIVERSE_DOMAIN
+};
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  storageBucket: 'gs://social-media-app-000.appspot.com',  
+ credential: admin.credential.cert(serviceAccount),
+ storageBucket: 'gs://social-media-app-000.appspot.com',  
 });
 
 const storage = multer.memoryStorage();
@@ -96,32 +109,31 @@ router.post('/login', async function(req, res, next) {
 
 router.post('/upload', upload.single('image'), isLoggedIn, async(req, res) => {
    try {
-    if (!req.file) {
+   if (!req.file) {
       return res.status(400)
-    }
-
-    const file = req.file;
-    const originalname = file.originalname;
-    const ext = path.extname(originalname);
-    const fileName = Date.now() + ext;
-    const fileUpload = bucket.file(fileName);
-    await fileUpload.save(file.buffer, {
-      metadata: {
-       contentType: file.mimetype
-      }
-    });
+   }
+   const file = req.file;
+   const originalname = file.originalname;
+   const ext = path.extname(originalname);
+   const fileName = Date.now() + ext;
+   const fileUpload = bucket.file(fileName);
+   await fileUpload.save(file.buffer, {
+   metadata: {
+      contentType: file.mimetype
+   }
+   });
 
    const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
    res.status(200)
-   
    let user = await userModel.findOne({ username: req.user.username })
    let post = await postModel.create({ user: user._id, posts: imageUrl })
    user.posts.push(post._id)
    await user.save()
-  } catch (error) {
+   res.redirect("/upload")
+ } catch (error) {
     console.error('Error uploading image:', error);
     res.status(500).send('Error uploading image.');
-  }
+ }
    
 });
 
