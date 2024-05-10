@@ -29,8 +29,14 @@ const userSchema = mongoose.Schema({
       }
    ],
    verified: Boolean,
-   dp: String,
-   cover: String
+   dp: {
+      type: String,
+      default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJW3vgacBtVdCZxUEgolubXOXHaIwJtqt_UIfQcIfB-w&s"
+   },
+   cover: {
+      type: String,
+      default: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQJW3vgacBtVdCZxUEgolubXOXHaIwJtqt_UIfQcIfB-w&s"
+   }
 })
 
 module.exports = mongoose.model('user', userSchema)

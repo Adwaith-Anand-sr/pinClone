@@ -9,7 +9,21 @@ const postSchema = mongoose.Schema({
       type: Date,
       default: Date.now
    },
-   posts: String
+   posts: String,
+   caption: String,
+   location: String,
+   mentions :[
+      {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "user"
+      }
+   ],
+   likes :[
+      {
+         type: mongoose.Schema.Types.ObjectId,
+         ref: "user"
+      }
+   ]
 })
 
 module.exports = mongoose.model('post', postSchema)

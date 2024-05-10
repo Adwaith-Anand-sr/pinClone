@@ -6,10 +6,24 @@ const multer = require('multer');
 const admin = require('firebase-admin')
 const path = require("path");
 const fs = require('fs');
+const { createServer } = require("http");
+const { Server } = require("socket.io");
+const httpServer = createServer();
+const socket = new Server(httpServer, {
+   cors: {
+      origin: "http://localhost:3000"
+   }  
+});
+const cookieParser = require('cookie-parser');
+
+let users = []
+
 
 const userModel = require("../models/users.js");
 const postModel = require("../models/posts.js");
+const chatModel = require("../models/message.js");
 
+//firebase storage setup
 require('dotenv').config();
 const serviceAccount = {
   type: process.env.TYPE,
@@ -24,19 +38,74 @@ const serviceAccount = {
   client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,
   universe_domain: process.env.UNIVERSE_DOMAIN
 };
-
 admin.initializeApp({
  credential: admin.credential.cert(serviceAccount),
  storageBucket: 'gs://social-media-app-000.appspot.com',  
 });
-
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
 const bucket = admin.storage().bucket();
+
+//socket.io setup (server)
+
+socket.on("connection", (socket) => {
+   socket.on("join", (username)=>{
+      users.push({ id: socket.id, username });
+      console.log(`user joined : ${username}`);
+      socket.emit('userJoined', users);
+   })
+   
+   socket.on("sendMessage", async (message,sender, receiver)=>{
+      const receiverSocketId = users.find(user => user.username === message.receiver)?.id;
+      if (receiverSocketId) {
+         socket.to(receiverSocketId).emit('receiveMessage', message);
+         let sender = await userModel.findOne({username: message.sender})
+         let receiver = await userModel.findOne({username: message.receiver})
+         const chat = new chatModel({
+            sender: sender,
+            receiver: receiver,
+            message: message.message
+         })
+         await chat.save()
+     }
+   })
+   
+   socket.on('disconnect', () => {
+      users = users.filter(user => user.id !== socket.id);
+      socket.emit('userLeft', users);
+      console.log('A user disconnected');
+   });
+
+});
+httpServer.listen(4000, () => {
+   console.log("Server is running on port 4000");
+});
+
+
 
 router.get('/', isLoggedIn,  function(req, res, next) {
   res.render('index', { title: 'Express' });
+});
+
+router.get('/message', isLoggedIn, async function(req, res) {
+   let users = await userModel.find()
+   res.render('messege', { user: req.user , users} );
+});
+
+router.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
+   
+   let selectedUser = await userModel.findOne({_id: req.params.userId})
+   let user = await userModel.findOne({username: req.user.username})
+   selectedUserId = selectedUser._id
+   userId = user._id
+   let chats = await chatModel.find({
+      $or: [
+         { sender: userId, receiver: selectedUserId },
+         { sender: selectedUserId, receiver: userId }
+      ]
+   }).sort({ timestamp: 1 });
+   res.render('../client/client', { user, selectedUser, chats } );
+   
 });
 
 router.get('/login', function(req, res, next) {
@@ -64,7 +133,23 @@ router.get('/upload', isLoggedIn, async function(req, res, next) {
 
 router.get('/posts', isLoggedIn, async function(req, res, next) {
    let user = await userModel.findOne({username: req.user.username})
-   res.render('posts', {user});
+   const postPromises = user.posts.map(async (postId) => {
+    return await postModel.findOne({_id: postId});
+   });
+   const posts = await Promise.all(postPromises);
+   res.render('posts', {user, posts});
+});
+
+router.get('/feeds', isLoggedIn, async function(req, res, next) {
+   let user = await userModel.findOne({username: req.user.username})
+   let posts = await postModel.find()
+   
+   const postPromises = posts.map(async (item) => {
+      return await userModel.findOne({_id: item.user});
+   });
+   const users = await Promise.all(postPromises);
+   
+   res.render('feeds', {posts, users, user});
 });
 
 router.post('/register', async function(req, res, next) {
@@ -86,7 +171,7 @@ router.post('/register', async function(req, res, next) {
    
    let token = jwt.sign({email, username}, "...here the secret")
    res.cookie("token", token)
-   res.redirect("/")
+   res.redirect("/profile")
 });
 
 router.post('/login', async function(req, res, next) {
@@ -107,35 +192,46 @@ router.post('/login', async function(req, res, next) {
    })
 });
 
-router.post('/upload', upload.single('image'), isLoggedIn, async(req, res) => {
-   try {
-   if (!req.file) {
-      return res.status(400)
-   }
-   const file = req.file;
-   const originalname = file.originalname;
-   const ext = path.extname(originalname);
-   const fileName = Date.now() + ext;
-   const fileUpload = bucket.file(fileName);
-   await fileUpload.save(file.buffer, {
-   metadata: {
-      contentType: file.mimetype
-   }
-   });
+router.post('/upload', upload.single('image'), isLoggedIn, async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).send('No file uploaded');
+        }
 
-   const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-   res.status(200)
-   let user = await userModel.findOne({ username: req.user.username })
-   let post = await postModel.create({ user: user._id, posts: imageUrl })
-   user.posts.push(post._id)
-   await user.save()
-   res.redirect("/upload")
- } catch (error) {
-    console.error('Error uploading image:', error);
-    res.status(500).send('Error uploading image.');
- }
-   
+        // Continue with other operations after file reception
+        const file = req.file;
+        const originalname = file.originalname;
+        const ext = path.extname(originalname);
+        const fileName = Date.now() + ext;
+        const fileUpload = bucket.file(fileName);
+
+        // Perform the file upload asynchronously
+        await fileUpload.save(file.buffer, {
+            metadata: {
+                contentType: file.mimetype
+            }
+        });
+
+        // Once upload is complete, continue with other operations
+        const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+        console.log("Post uploaded successfully");
+
+        // Find user and create post
+        let user = await userModel.findOne({ username: req.user.username });
+        let post = await postModel.create({ user: user._id, posts: imageUrl, caption: req.body.caption, location: req.body.location });
+
+        // Update user's posts and save
+        user.posts.push(post._id);
+        await user.save();
+
+        // Redirect the user to the profile page
+        res.redirect("/profile");
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        res.status(500).send('Error uploading image.');
+    }
 });
+
 
 function isLoggedIn(req, res, next) {
    if (req.cookies.token) {
