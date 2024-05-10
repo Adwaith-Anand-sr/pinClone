@@ -1,3 +1,4 @@
+
 function goBack() {
    window.history.back();
 }
@@ -12,11 +13,8 @@ function openChat(userId) {
 function scrollToBottom() {
    const chatList = document.querySelector('.chatSection');
    chatList.scrollTop = chatList.scrollHeight;
-   
 }
-
 window.onload = scrollToBottom;
-
 
 // Add an event listener to the form submission
 document.getElementById('uploadForm').addEventListener('submit', async (event) => {

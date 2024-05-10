@@ -9,7 +9,7 @@ const fs = require('fs');
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const httpServer = createServer();
-const socket = new Server(httpServer, {
+const io = new Server(httpServer, {
    cors: {
       origin: "http://localhost:3000"
    }  
@@ -48,7 +48,7 @@ const bucket = admin.storage().bucket();
 
 //socket.io setup (server)
 
-socket.on("connection", (socket) => {
+io.on("connection", (socket) => {
    socket.on("join", (username)=>{
       users.push({ id: socket.id, username });
       console.log(`user joined : ${username}`);
@@ -57,17 +57,24 @@ socket.on("connection", (socket) => {
    
    socket.on("sendMessage", async (message,sender, receiver)=>{
       const receiverSocketId = users.find(user => user.username === message.receiver)?.id;
+      let senderUser = await userModel.findOne({username: message.sender})
+      let receiverUser = await userModel.findOne({username: message.receiver})
+      const chat = new chatModel({
+         sender: senderUser,
+         receiver: receiverUser,
+         message: message.message
+      })
+      await chat.save()
+      io.to(socket.id).emit('sendingProgress', chat);
       if (receiverSocketId) {
-         socket.to(receiverSocketId).emit('receiveMessage', message);
-         let sender = await userModel.findOne({username: message.sender})
-         let receiver = await userModel.findOne({username: message.receiver})
-         const chat = new chatModel({
-            sender: sender,
-            receiver: receiver,
-            message: message.message
-         })
-         await chat.save()
-     }
+         socket.to(receiverSocketId).emit('receiveMessage', message, chat);
+      }
+   })
+   
+   socket.on("markAsSeen", async (chat)=>{
+      const senderSocketId = users.find(user => user.username === chat.sender.username)?.id;
+      let seenedChat = await chatModel.findByIdAndUpdate(chat._id, { readed: true });
+      io.to(senderSocketId).emit('messagesSeen', seenedChat);
    })
    
    socket.on('disconnect', () => {
@@ -93,7 +100,6 @@ router.get('/message', isLoggedIn, async function(req, res) {
 });
 
 router.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
-   
    let selectedUser = await userModel.findOne({_id: req.params.userId})
    let user = await userModel.findOne({username: req.user.username})
    selectedUserId = selectedUser._id
@@ -104,6 +110,12 @@ router.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
          { sender: selectedUserId, receiver: userId }
       ]
    }).sort({ timestamp: 1 });
+   chats.map(async (item)=>{
+      if (item.receiver.toString() === user._id.toString()) {
+         item.readed = true
+         item.save()
+      }
+   })
    res.render('../client/client', { user, selectedUser, chats } );
    
 });

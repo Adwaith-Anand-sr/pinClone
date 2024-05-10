@@ -15,15 +15,22 @@
          <h1 class="text-[1.15rem] font-black"><%= selectedUser.username %></h1>
       </nav>
       
-      <div class="chatSection py-[3vh] overflow-x-hidden overflow-y-auto flex flex-col gap-[1.85vh] w-full fixed top-[7%] h-[86%]">
+      <div class="chatSection py-[3vh] overflow-x-hidden overflow-y-auto flex flex-col gap-[1.85vh] w-full fixed top-[7%] h-[86%]" >
+         <% let messageId %>
          <% if(chats.length >0) { %>
             <% let userId = user._id %>
             
             <% chats.forEach((item) =>{ %>
+               <% messageId = item._id.toString() %>
                <% if( item.sender.toString() === userId.toString() ){ %>
-                  <div class="justify-end flex w-full px-[5vw]">
+                  <div class="chats justify-end flex w-full py-[0.8vh] px-[5vw]" >
                      <div>
                         <span class="text-[1.2rem]"><%= item.message %></span>
+                        <% if(item.readed === true){ %>
+                           <i class="tickIcon relative top-[35%] bi bi-check-all text-blue-400"></i>
+                        <% }else { %>
+                           <i class="tickIcon relative top-[35%] text-white bi bi-check-all"></i>
+                        <% } %>
                         <span class="text-[0.6rem] ml-[3vw] opacity-[0.7]">
                            <% let timestamp = new Date(item.timestamp) %>
                            <% let hours = timestamp.getHours() %>
@@ -34,10 +41,10 @@
                      </div>
                   </div>
                <% }else { %>
-                  <div class="justify-start flex w-full px-[5vw]">
+                  <div class="chats justify-start flex w-full py-[0.8vh] px-[5vw]" >
                      <div>
                         <span class="text-[1.2rem]"><%= item.message %></span>
-                        <span class="text-[0.6rem] ml-[3vw] opacity-[0.7]">
+                        <span class="text-[0.6rem] opacity-[0.7]">
                            <% let timestamp = new Date(item.timestamp) %>
                            <% let hours = timestamp.getHours() %>
                            <% (hours >12) ? hours-=12 : hours %>
@@ -78,30 +85,32 @@
       let receiver= '<%= selectedUser.username %>'
       let date = new Date()
       let hours = date.getHours()
+      if (hours> 12) { hours= hours-12 }
       let minutes = date.getMinutes()
       if (message !== '') {
          socket.emit('sendMessage', { message, sender, receiver});
          document.querySelector(".chatSection").innerHTML +=`
-            <div class="justify-end flex w-full mb-[3vh] px-[5vw]">
+            <div class="chats justify-end flex w-full mb-[3vh] px-[5vw]">
                <div>
                   <span class="text-[1.2rem]"> ${message} </span>
+                  <i class="tickIcon relative top-[35%] text-white bi bi-check-all"></i>
                   <span class="text-[0.6rem] ml-[3vw] opacity-[0.7]">
                      ${hours} : ${minutes}
                   </span>
                </div>
             </div>
          `
-         scrollToBottom()
          messageInput.value = '';
+         scrollToBottom()
       }
-   });
+   }); 
    
-   socket.on("receiveMessage", (message)=>{
+   socket.on("receiveMessage", (message, chat)=>{
       let date = new Date()
       let hours = date.getHours()
       let minutes = date.getMinutes()
       document.querySelector(".chatSection").innerHTML +=`
-         <div class="justify-start flex w-full mb-[3vh] px-[5vw]">
+         <div class="chats justify-start flex w-full mb-[3vh] px-[5vw]">
             <div>
                <span class="text-[1.2rem]"> ${message.message} </span>
                <span class="text-[0.6rem] ml-[3vw] opacity-[0.7]">
@@ -111,8 +120,21 @@
          </div>
       `
       scrollToBottom()
-   }); 
-    
+      setTimeout(()=>{
+         socket.emit("markAsSeen", chat)
+      },500)
+   });
+   
+   socket.on('messagesSeen', (seenedChat) => {
+      const tickIcon = document.querySelectorAll('.chatSection .chats .tickIcon');
+      tickIcon.forEach((item)=>{
+         if (!item.classList.contains('text-blue-400')) {
+            item.classList.remove('text-white'); 
+            item.classList.add('text-blue-400'); 
+         }
+      })
+   });
+   
    </script>
 </body>
 </html>
