@@ -12,7 +12,7 @@ const httpServer = createServer();
 const io = new Server(httpServer, {
    cors: {
       //origin: "http://localhost:3000"
-      origin: "https://friendszone-vw8g.onrender.com"
+      origin: "https://friendszone-vw8g.onrender.com:1000"
    }  
 });
 const cookieParser = require('cookie-parser');
