@@ -1,3 +1,6 @@
+// const socket = io("http://localhost:4000")
+
+// socket.emit("join", username);
 
 function goBack() {
    window.history.back();
@@ -15,6 +18,11 @@ function scrollToBottom() {
    chatList.scrollTop = chatList.scrollHeight;
 }
 window.onload = scrollToBottom;
+
+function bubbleNotify(value) {
+   (value<=10) ? document.getElementById("bubbleNotify").textContent = value : document.getElementById("bubbleNotify").textContent = "10+"
+   notify.classList.add("bg-green-400")
+}
 
 // Add an event listener to the form submission
 document.getElementById('uploadForm').addEventListener('submit', async (event) => {

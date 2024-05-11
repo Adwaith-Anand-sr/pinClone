@@ -46,9 +46,10 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 const bucket = admin.storage().bucket();
 
-//socket.io setup (server)
 
+//socket.io setup (server)
 io.on("connection", (socket) => {
+   console.log("user connected.");
    socket.on("join", (username)=>{
       users.push({ id: socket.id, username });
       console.log(`user joined : ${username}`);
@@ -65,9 +66,10 @@ io.on("connection", (socket) => {
          message: message.message
       })
       await chat.save()
-      io.to(socket.id).emit('sendingProgress', chat);
+      let chats = await chatModel.find({sender: senderUser._id, receiver: receiverUser._id, readed: false})
       if (receiverSocketId) {
          socket.to(receiverSocketId).emit('receiveMessage', message, chat);
+         socket.to(receiverSocketId).emit('notifyMessege', chat, chats);
       }
    })
    
@@ -82,12 +84,10 @@ io.on("connection", (socket) => {
       socket.emit('userLeft', users);
       console.log('A user disconnected');
    });
-
 });
 httpServer.listen(4000, () => {
    console.log("Server is running on port 4000");
 });
-
 
 
 router.get('/', isLoggedIn,  function(req, res, next) {
@@ -96,7 +96,8 @@ router.get('/', isLoggedIn,  function(req, res, next) {
 
 router.get('/message', isLoggedIn, async function(req, res) {
    let users = await userModel.find()
-   res.render('messege', { user: req.user , users} );
+   let unReaded = await chatModel.find({readed: false})
+   res.render('messege', { user: req.user , users, unReaded} );
 });
 
 router.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
@@ -111,9 +112,12 @@ router.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
       ]
    }).sort({ timestamp: 1 });
    chats.map(async (item)=>{
-      if (item.receiver.toString() === user._id.toString()) {
+      if (item.receiver.toString() === user._id.toString() && item.readed === false) {
          item.readed = true
          item.save()
+         let sender = await userModel.findOne({_id: item.sender})
+         const senderSocketId = users.find(user => user.username === sender.username)?.id;
+         io.to(senderSocketId).emit('messagesSeen', item);
       }
    })
    res.render('../client/client', { user, selectedUser, chats } );
@@ -243,7 +247,6 @@ router.post('/upload', upload.single('image'), isLoggedIn, async (req, res) => {
         res.status(500).send('Error uploading image.');
     }
 });
-
 
 function isLoggedIn(req, res, next) {
    if (req.cookies.token) {

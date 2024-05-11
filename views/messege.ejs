@@ -18,9 +18,19 @@
          <%if(users.length != 0) { %>
             <% users.forEach((item, i)=>{ %>
                 <% if(item.username != user.username) { %>
-                  <div onclick="openChat('<%= item._id %>')" class="eachchats flex gap-[4vw] items-center px-[4vw] py-[1.35vh] border-b border-zinc-600">
-                     <img class="w-[4.85vh] h-[4.85vh] rounded-full object-cover" src="<%= item.dp %>">
-                     <h1 class="font-black"> <%= item.username %> </h1>
+                  <div onclick="openChat('<%= item._id %>')" class="eachchats flex gap-[4vw] items-center justify-between px-[4vw] py-[1.35vh] border-b border-zinc-600">
+                     <div class="flex items-center gap-[3vw]">
+                        <img class="w-[4.85vh] h-[4.85vh] rounded-full object-cover" src="<%= item.dp %>">
+                        <h1 class="font-black"> <%= item.username %> </h1>
+                     </div>
+                     <div class="bubbleContainer">
+                        <% if( unReaded.length>0 && unReaded.length<=10 ){ %>
+                           <div id="bubbleNotify" class="text-[0.65rem] bg-green-400 font-black w-[2.5vh] h-[2.5vh] rounded-full flex items-center justify-center"><%= unReaded.length %></div>
+                        <% }else if(unReaded.length >10){ %>
+                           <div id="bubbleNotify" class="text-[0.65rem] bg-green-400 font-black w-[2.5vh] h-[2.5vh] rounded-full flex items-center justify-center">10+ bg-green-400</div>
+                        <% } %>
+                     </div>
+                     
                   </div>
                <% } %>
             <% }) %>
@@ -31,6 +41,28 @@
    </main>
 
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-   <script src="/javascripts/script.js"></script>
+   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
+   <script src="../../javascripts/script.js"></script>
+   
+   <script>
+      const socket = io("http://localhost:4000")
+      let username = "<%= user.username %>";
+      socket.emit("join", username);
+      
+      socket.on("notifyMessege", (chat, chats)=>{
+         if(chats.length > 0 && chats.length <= 10){
+            document.querySelector(".bubbleContainer").innerHTML  = `
+               <div id="bubbleNotify" class="text-[0.65rem] bg-green-400 font-black w-[2.5vh] h-[2.5vh] rounded-full flex items-center justify-center"> ${chats.length} </div>
+            `
+         }else if(chats.length > 10){
+            document.querySelector(".bubbleContainer").innerHTML  = `
+               <div id="bubbleNotify" class="text-[0.65rem] bg-green-400 font-black w-[2.5vh] h-[2.5vh] rounded-full flex items-center justify-center">10+</div>
+            `
+         }else {
+            document.querySelector(".bubbleContainer").innerHTML =""
+         }
+      })
+   
+   </script>
 </body>
 </html>
