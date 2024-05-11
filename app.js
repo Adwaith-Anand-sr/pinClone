@@ -9,8 +9,6 @@ const expressSession = require("express-session");
 const flash = require("connect-flash");
 const server = http.createServer(app)
 
-const port = process.env.PORT || 4000;
-
 var indexRouter = require('./routes/index');
 var usersRouter = require('./models/users');
 //var serverjs = require('./server');
@@ -63,8 +61,5 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
 
 module.exports = app;
