@@ -45,7 +45,8 @@
    <script src="../../javascripts/script.js"></script>
    
    <script>
-      const socket = io("http://localhost:4000")
+      //const socket = io("http://localhost:4000")
+      const socket = io("https://friendszone-vw8g.onrender.com/")
       let username = "<%= user.username %>";
       socket.emit("join", username);
       

@@ -11,7 +11,8 @@ const { Server } = require("socket.io");
 const httpServer = createServer();
 const io = new Server(httpServer, {
    cors: {
-      origin: "http://localhost:3000"
+      //origin: "http://localhost:3000"
+      origin: "https://friendszone-vw8g.onrender.com"
    }  
 });
 const cookieParser = require('cookie-parser');
