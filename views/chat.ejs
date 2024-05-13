@@ -118,9 +118,7 @@
          </div>
       `
       scrollToBottom()
-      setTimeout(()=>{
-         socket.emit("markAsSeen", chat)
-      },500)
+      socket.emit("markAsSeen", chat)
    });
    
    socket.on('messagesSeen', (seenedChat) => {

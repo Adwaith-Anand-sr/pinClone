@@ -77,9 +77,8 @@ io.on("connection", (socket) => {
    });
 });
 
-
 app.get("/", (req, res) => {
-   res.render("index");
+   res.redirect("/login");
 });
 
 app.get("/register", (req, res) => {
@@ -93,23 +92,24 @@ app.get("/login", (req, res) => {
 
 app.get("/profile",  isLoggedIn, async(req, res) => {
    let user = await userModel.findOne({username: req.user.username});
-   res.render("profile", {user});
+   let unReaded = await chatModel.find({receiver: user._id , readed: false});
+   res.render("profile", {user, unReaded});
 });
 
 app.get("/upload",  isLoggedIn, async(req, res) => {
-   let user = await userModel.findOne({username: req.user.username})
+   let user = await userModel.findOne({username: req.user.username});
    res.render("upload", {user});
 });
 
 app.get("/posts",  isLoggedIn, async(req, res) => {
-   let user = await userModel.findOne({username: req.user.username})
-   let posts = await postModel.find({user: user._id})
+   let user = await userModel.findOne({username: req.user.username});
+   let posts = await postModel.find({user: user._id});
    res.render("posts", {user, posts});
 });
 
 app.get('/feeds', isLoggedIn, async function(req, res, next) {
-   let user = await userModel.findOne({username: req.user.username})
-   let posts = await postModel.find()
+   let user = await userModel.findOne({username: req.user.username});
+   let posts = await postModel.find();
    const postPromises = posts.map(async (item) => {
       return await userModel.findOne({_id: item.user});
    });
@@ -119,18 +119,18 @@ app.get('/feeds', isLoggedIn, async function(req, res, next) {
 });
 
 app.get("/message",  isLoggedIn, async(req, res) => {
-   let user = await userModel.findOne({username: req.user.username})
-   let users = await userModel.find()
-   let unReaded = 0
+   let user = await userModel.findOne({username: req.user.username});
+   let users = await userModel.find();
+   let unReaded = await chatModel.find({receiver: user._id , readed: false});
    res.render("message", {user, users, unReaded});
 });
 
 app.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
-   let selectedUser = await userModel.findOne({_id: req.params.userId})
+   let selectedUser = await userModel.findOne({_id: req.params.userId});
    if(!selectedUser) { return res.send("user not exists") }
-   let user = await userModel.findOne({username: req.user.username})
-   selectedUserId = selectedUser._id
-   userId = user._id
+   let user = await userModel.findOne({username: req.user.username});
+   selectedUserId = selectedUser._id;
+   userId = user._id;
    let chats = await chatModel.find({
       $or: [
          { sender: userId, receiver: selectedUserId },

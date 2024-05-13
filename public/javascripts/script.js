@@ -1,3 +1,11 @@
+function scrollToBottom() {
+   
+   const chatList = document.querySelector('.chatSection');
+   chatList.scrollTop = chatList.scrollHeight;
+}
+
+window.onload = scrollToBottom;
+
 // dynamic files uploading
 document.getElementById('uploadForm').addEventListener('submit', async (event) => {
    event.preventDefault();
@@ -23,14 +31,6 @@ function goBack() {
    window.history.back();
 }
 
-// opening individual chat
-// function openChat(userId) {
-//    fetch("/message/chat/" + userId)
-//    .then((response)=>{
-//       if(response.ok) window.location.href = `/message/chat/${userId}`
-//    })
-// }
-
 function openChat(userId) {
    var xhr = new XMLHttpRequest();
    // Configure the request
@@ -51,11 +51,6 @@ function openChat(userId) {
    xhr.send();
 }
 
-function scrollToBottom() {
-   const chatList = document.querySelector('.chatSection');
-   chatList.scrollTop = chatList.scrollHeight;
-}
-window.onload = scrollToBottom;
 
 function bubbleNotify(value) {
    (value<=10) ? document.getElementById("bubbleNotify").textContent = value : document.getElementById("bubbleNotify").textContent = "10+"
