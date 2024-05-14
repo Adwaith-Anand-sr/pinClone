@@ -13,9 +13,13 @@
    </style>
 </head>
 <body class="w-full h-screen overflow-x-hidden select-none">
-   <nav class="w-full shadow bg-emerald-300 absolute z-20 flex items-center justify-end px-[3vw] py-[0.85vh]">
+   <nav class="w-full shadow absolute z-20 flex items-center justify-end px-[3vw] py-[0.85vh]">
       <div class="relative">
-         <div class="notify absolute top-[15%] left-[70%] w-[2vw] h-[2vw] rounded-full bg-red-500"></div>
+         <% if(unReaded.length >0){ %>
+            <div class="notify absolute top-[15%] left-[70%] w-[2vw] h-[2vw] rounded-full bg-red-500"></div>
+         <% }else{ %>
+            <div class="notify absolute top-[15%] left-[70%] w-[2vw] h-[2vw] rounded-full "></div>
+         <% } %>
          <i onclick="fetchMessage()" class="bi bi-chat-fill text-[1.6rem]"></i> 
       </div>
    </nav>
@@ -77,6 +81,12 @@
       const socket = io()
       let username = "<%= user.username %>";
       socket.emit("join", username);
+      
+      socket.on("notifyMessege", (chat, chats)=>{
+         if(chats.length > 0){
+            let notify = document.querySelector(".notify").classList.add("bg-red-500")
+         }
+      })
       
       let postAddBtn = document.querySelector(".upload button")
       

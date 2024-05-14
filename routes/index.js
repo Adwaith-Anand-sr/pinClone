@@ -48,6 +48,7 @@ io.on("connection", (socket) => {
    });
    
    socket.on("sendMessage", async (message,sender, receiver)=>{
+      console.log(message);
       const receiverSocketId = users.find(user => user.username === message.receiver)?.id;
       let senderUser = await userModel.findOne({username: message.sender});
       let receiverUser = await userModel.findOne({username: message.receiver});
@@ -144,6 +145,7 @@ app.get('/message/chat/:userId', isLoggedIn, async function(req, res) {
          let sender = await userModel.findOne({_id: item.sender})
          const senderSocketId = users.find(user => user.username === sender.username)?.id;
          io.to(senderSocketId).emit('messagesSeen', item);
+         
       }
    })
    res.render('chat', { user, selectedUser, chats } );

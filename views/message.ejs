@@ -24,12 +24,13 @@
                      </div>
                      <div class="bubbleContainer">
                         <% let unread = 0 %>
-                        <% unReaded.forEach((elem, i) =>{ %>
-                           <% if(elem.sender.toString() === item._id.toString()){ %>
-                              <% unread++ %>
-                           <% } %>
-                        <% }) %>
-                        
+                        <% if(unReaded.length >0) { %>
+                           <% unReaded.forEach((elem, i) =>{ %>
+                              <% if(elem.sender.toString() === item._id.toString()){ %>
+                                 <% unread++ %>
+                              <% } %>
+                           <% }) %>
+                        <% } %>
                         <% if( unread>0 && unread<=10 ){ %>
                               <div id="bubbleNotify" class="text-[0.65rem] bg-green-400 font-black w-[2.5vh] h-[2.5vh] rounded-full flex items-center justify-center"><%= unread %></div>
                         <% }else if(unread >10){ %>
@@ -67,6 +68,8 @@
             document.querySelector(".bubbleContainer").innerHTML =""
          }
       })
+   
+   
    
    </script>
 </body>

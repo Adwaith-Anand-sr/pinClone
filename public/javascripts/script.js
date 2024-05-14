@@ -1,6 +1,7 @@
 function scrollToBottom() {
-   
    const chatList = document.querySelector('.chatSection');
+   const chat = document.querySelector('.chatSection .chats');
+   
    chatList.scrollTop = chatList.scrollHeight;
 }
 
@@ -28,28 +29,32 @@ document.getElementById('uploadForm').addEventListener('submit', async (event) =
 
 // controll over arrow back buttons
 function goBack() {
-   window.history.back();
+   window.history.back() 
+}
+
+function clearNotify(){
+   let bubbleNotify = document.querySelector(".bubbleContainer")
+   bubbleNotify.innerHTML = ""
+   let profileNotify = document.querySelector("nav .notify");
+   profileNotify.classList.remove("bg-red-500");
 }
 
 function openChat(userId) {
+   
    var xhr = new XMLHttpRequest();
-   // Configure the request
    xhr.open("GET", "/message/chat/" + userId);
-   
-   // Set the response type
    xhr.responseType = "json";
-   
-   // Define what happens on successful response
    xhr.onload = function() {
       if (xhr.status === 200) {
-         // Redirect to the chat page
          window.location.href = `/message/chat/${userId}`;
+         clearNotify();
       }
+   
    };
    
-   // Send the request
    xhr.send();
 }
+
 
 
 function bubbleNotify(value) {

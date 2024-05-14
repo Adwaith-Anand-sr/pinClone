@@ -7,15 +7,15 @@
    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="w-full h-screen bg-zinc-900 text-white overflow-hidden">
-   <main class="w-full h-screen overflow-x-hidden overflow-y-auto bg-black pb-[2vh]">
+<body class="w-full fixed h-screen bg-zinc-900 text-white overflow-hidden">
+   <main class="w-full fixed h-screen overflow-hidden bg-black pb-[2vh]">
 
       <nav class="fixed flex gap-[3vw] items-center px-[3vw] top-0 h-[7%] border-b z-20 w-full">
          <i onclick="goBack()" class="bi bi-arrow-left inline-flex text-white text-[1.3rem] font-black rounded-full items-center justify-center h-[10vw] w-[10vw]"></i>
          <h1 class="text-[1.15rem] font-black"><%= selectedUser.username %></h1>
       </nav>
 
-      <div class="chatSection py-[3vh] overflow-x-hidden overflow-y-auto flex flex-col gap-[1.85vh] w-full fixed top-[7%] h-[86%]" >
+      <div class="chatSection overflow-y-auto py-[3vh] overflow-x-hidden flex flex-col gap-[2.5vh] w-full fixed top-[7%] h-[86%]" >
          <% let messageId %>
          <% if(chats.length >0) { %>
             <% let userId = user._id %>
@@ -23,27 +23,45 @@
             <% chats.forEach((item) =>{ %>
                <% messageId = item._id.toString() %>
                <% if( item.sender.toString() === userId.toString() ){ %>
-                  <div class="chats justify-end flex w-full py-[0.8vh] px-[5vw]" >
-                     <div>
-                        <span class="text-[1.2rem]"><%= item.message %></span>
-                        <% if(item.readed === true){ %>
-                           <i class="tickIcon relative top-[35%] bi bi-check-all text-blue-400"></i>
-                        <% }else { %>
-                           <i class="tickIcon relative top-[35%] text-white bi bi-check-all"></i>
-                        <% } %>
-                        <span class="text-[0.6rem] ml-[3vw] opacity-[0.7]">
-                           <% let timestamp = new Date(item.timestamp) %>
-                           <% let hours = timestamp.getHours() %>
-                           <% let min = timestamp.getMinutes() %>
-                           <%= hours %> :
-                           <%= min %> 
-                        </span>
+                  <div class="chats text-[1.2rem] justify-end flex w-full px-[2vw]" >
+                     <div class="chat flex flex-col w-[80vw] h-full">
+                        <div class="msg self-end pr-[8vw]">
+                           <span class="">
+                              <% let msg = item.message %>
+                              <% let split = msg.split("<br>")%>
+                              <% split.map(line=>{ %>
+                                 <%= line %> <br>
+                              <% }) %>
+                           </span>
+                        </div>
+                        <div class="dets self-end flex items-center gap-[3vw] w-[15vw]">
+                           <span class="text-[0.6rem] w-full overflow-hidden opacity-[0.7]">
+                              <% let timestamp = new Date(item.timestamp) %>
+                              <% let hours = timestamp.getHours() %>
+                              <% (hours > 12) ? hours-=12 : hours %>
+                              <% let min = timestamp.getMinutes() %>
+                              <%= hours %> :
+                              <%= min %> 
+                           </span>
+                           <% if(item.readed === true){ %>
+                              <i class="tickIcon bi bi-check-all text-blue-400"></i>
+                           <% }else { %>
+                              <i class="tickIcon text-white bi bi-check-all"></i>
+                           <% } %>
+                        
+                        </div>
                      </div>
                   </div>
                <% }else { %>
                   <div class="chats justify-start flex w-full py-[0.8vh] px-[5vw]" >
                      <div>
-                        <span class="text-[1.2rem]"><%= item.message %></span>
+                        <span class="text-[1.2rem]">
+                           <% let msg = item.message %>
+                           <% let split = msg.split("<br>")%>
+                           <% split.map(line=>{ %>
+                              <%= line %> <br>
+                           <% }) %>
+                        </span>
                         <span class="text-[0.6rem] opacity-[0.7]">
                            <% let timestamp = new Date(item.timestamp) %>
                            <% let hours = timestamp.getHours() %>
@@ -60,9 +78,9 @@
 
       </div>
 
-      <footer class="fixed z-[99] w-full h-[7%] top-[93%] border-t ">
-            <input class="bg-transparent border" type="text" name="message" id="messageInput">
-            <input type="submit" value="send" id="sendButton">
+      <footer class="fixed bg-black flex items-center z-[99] py-[1vh] w-full h-[7%] max-h-[100px] top-[92%] border-t">
+         <textarea class="bg-transparent mt-[1vh] pt-[0.5vh] pl-[5vw] border min-h-[10px] max-h-[100px] rounded-[30px] text-[1rem] overflow-y-auto"  cols="40" name="message" id="messageInput" placeholder="message"></textarea>
+         <input type="submit" value="send" id="sendButton">
       </footer>
 
    </main>
@@ -74,32 +92,71 @@
    let username = "<%= user.username %>";
    const messageInput = document.getElementById('messageInput');
    const sendButton = document.getElementById('sendButton');
-
+   const footer = document.querySelector('footer');
+   const chatSection = document.querySelector('.chatSection');
+   
    socket.emit("join", username);
    
+   messageInput.addEventListener('input', () => {
+      messageInput.style.height = 'auto';
+      messageInput.style.height = Math.min(messageInput.scrollHeight, parseInt(getComputedStyle(messageInput).maxHeight)) + 'px';
+      if((messageInput.style.height) =="77px") {
+         footer.style.top = "88%"
+         messageInput.style.marginTop = "4vh"
+      } else
+      if((messageInput.style.height) =="100px") {
+         footer.style.top = "86%"
+         messageInput.style.marginTop = "7vh"
+      } else
+      if((messageInput.style.height) < "77") {
+         footer.style.top = "92%"
+         messageInput.style.marginTop = "1vh"
+      } 
+   });
+   
    sendButton.addEventListener('click', () => {
-      const message = messageInput.value.trim();
+      const initialMessage = messageInput.value;
+      const lines = initialMessage.split("\n");
+      let blank = true
+      const nonBlankLines = lines.map(line => {
+         if(line != "") {
+            blank = false
+         }
+      }
+      );
+      let formattedMessage = initialMessage.replace(/\n/g, "<br>");
+      let message = formattedMessage
       let sender = '<%= user.username %>'
       let receiver= '<%= selectedUser.username %>'
       let date = new Date()
       let hours = date.getHours()
       if (hours> 12) { hours= hours-12 }
       let minutes = date.getMinutes()
-      if (message !== '') {
+      if (blank !== true) {
          socket.emit('sendMessage', { message, sender, receiver});
          document.querySelector(".chatSection").innerHTML +=`
-            <div class="chats justify-end flex w-full mb-[3vh] px-[5vw]">
-               <div>
-                  <span class="text-[1.2rem]"> ${message} </span>
-                  <i class="tickIcon relative top-[35%] text-white bi bi-check-all"></i>
-                  <span class="text-[0.6rem] ml-[3vw] opacity-[0.7]">
-                     ${hours} : ${minutes}
+            <div class="chats text-[1.2rem] justify-end flex w-full px-[2vw]" >
+            <div class="chat flex flex-col w-[80vw] h-full">
+               <div class="msg self-end pr-[8vw] ">
+                  <span class="">
+                     ${message}
                   </span>
                </div>
+               <div class="dets self-end flex items-center gap-[3vw] w-[15vw]">
+                  <span class="text-[0.6rem] w-full overflow-hidden opacity-[0.7]">
+                     ${hours} :
+                     ${minutes}
+                  </span>
+                  <i class="tickIcon text-white bi bi-check-all"></i>
+               </div>
             </div>
+         </div>
+            
          `
          messageInput.value = '';
-         scrollToBottom()
+         setTimeout(()=>{
+            scrollToBottom()
+         },250)
       }
    }); 
    
