@@ -42,6 +42,7 @@ let users = [];
 
 io.on("connection", (socket) => {
    console.log("a user connected");
+   socket.join("room1");
    socket.on('join', (username) => {
       users.push({ id: socket.id, username });
       console.log(`user joined : ${username}`);
