@@ -30,7 +30,7 @@ mongoose.connect(uri).then(()=>{
 const adminUI = instrument(io, {
   auth: {
     type: "basic",
-mode: "development",
+mode: "production",
     username: "adwaith@admin",
     password: "$2a$10$YxzVqYNPBS3qYHmXkyJenuyqbgf8Xj5nFYP6KyLpT85OFHz4fRV2q"
   }
