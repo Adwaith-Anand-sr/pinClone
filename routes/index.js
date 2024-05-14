@@ -39,6 +39,7 @@ const bucket = admin.storage().bucket();
 
 // socket.io setup
 let users = [];
+
 io.on("connection", (socket) => {
    console.log("a user connected");
    socket.on('join', (username) => {
@@ -77,6 +78,7 @@ io.on("connection", (socket) => {
       console.log('A user disconnected');
    });
 });
+
 
 app.get("/", (req, res) => {
    res.redirect("/login");
