@@ -8,8 +8,8 @@
    <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
-<body >
-   <main class="w-full h-screen font-black bg-black overflow-hidden">
+<body class="bg-zinc-800 overflow-hidden">
+   <main id="main" style="display: none; opacity: 0; scale: 0;" class="w-full h-screen font-black bg-black overflow-hidden">
       <div class="w-full h-[25%] bg-black flex items-center justify-center">
          <h1 class="text-[4vh] font-black tracking-tighter text-white">Sign Up</h1>
       </div>
@@ -55,7 +55,31 @@
          <h2 class="font-semibold inline-block mt-[4vh] relative left-1/2 -translate-x-1/2">Already have an account? <a class="font-black" href="/login">LogIn</a></h2>
       </div>
    </main>
-
+   
+   <div id="intro" style="scale: 0; opacity: 0;" class="w-full text-white h-[90vh] bg-zinc-800">
+      <h1 id="mainName" class="absolute left-1/2 my-[5vh] -translate-x-1/2 tracking-tighter font-black text-[3rem] ">
+         <span>V</span>
+         <span>i</span>
+         <span>v</span>
+         <span>i</span>
+         <span>d</span>
+         <span>E</span>
+         <span>x</span>
+      </h1>
+      <p class=" text-[1.8rem] w-[75%] font-semibold absolute top-[30%] left-1/2 -translate-x-1/2 ">
+         Step into our vibrant chat community,
+         and discover endless possibilities
+         in every conversation <span class="text-green-600 text-[2rem] font-black">!</span>
+      </p>
+      
+      <div style="background: linear-gradient(to right top, #56d9fa, #ef44c9);" class="text-zinc-800 absolute flex items-center justify-center top-[60%] left-1/2 -translate-x-1/2 whitespace-nowrap tracking-tighter font-black text-[1.35rem] py-[1vh] px-[8vw] rounded-[25px]">Lets Register to MoveOn.</div>
+      
+   </div>
+   
+   
+   
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+   <script src="./javascripts/gsap.js"></script>
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html>
