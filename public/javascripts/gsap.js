@@ -30,4 +30,19 @@ function registerIntro() {
       opacity: 1
    }, "-=0.15")
 }
-registerIntro()
+
+
+
+let url = "http://localhost:3000"
+
+
+
+function fetchProfile() {
+   
+}
+
+gsap.to("loader")
+
+
+xhttp.open("GET", `${url}/hey`, true)
+xhttp.send()

@@ -85,6 +85,10 @@ app.get("/", (req, res) => {
    res.redirect("/login");
 });
 
+app.get("/hey", (req, res) => {
+   res.render("profile")
+});
+
 app.get("/register", (req, res) => {
    res.render("register");
    

@@ -10,7 +10,7 @@
 <body class="w-full h-screen bg-zinc-900 text-white overflow-hidden">
    <main class="select-none w-full h-screen overflow-x-hidden overflow-y-auto bg-black pb-[2vh]">
       <nav class="fixed flex gap-[3vw] items-center px-[3vw] top-0 h-[7%] border-b z-20 w-full">
-         <i onclick="goBack()" class="bi bi-arrow-left inline-flex text-white text-[1.3rem] font-black rounded-full items-center justify-center h-[10vw] w-[10vw]"></i>
+         <i onclick="fetchProfile()" class="bi bi-arrow-left inline-flex text-white text-[1.3rem] font-black rounded-full items-center justify-center h-[10vw] w-[10vw]"></i>
          <h1 class="text-[1.15rem] font-black"><%= user.username %></h1>
       </nav>
       <div class="userslists overflow-x-hidden overflow-y-auto flex flex-col gap-[1vh] w-full fixed top-[7%] h-[92%]">
@@ -43,7 +43,14 @@
          <% } %>
       </div>
    </main>
-
+   
+   <div style="display: none;" id="chatLoader" class="fixed gap-[1vw] top-0 z-50 bg-zinc-700 w-full h-full flex items-center justify-center">
+      <div class="w-[2.5vh] animate-bounce h-[2.5vh] bg-emerald-400 rounded-full "></div>
+      <div style="animation-delay: 0.1s;" class="w-[2.5vh] animate-bounce h-[2.5vh] bg-emerald-400 rounded-full "></div>
+      <div style="animation-delay: 0.2s;" class="w-[2.5vh] animate-bounce h-[2.5vh] bg-emerald-400 rounded-full "></div>
+      <div style="animation-delay: 0.3s;" class="w-[2.5vh] animate-bounce h-[2.5vh] bg-emerald-400 rounded-full "></div>
+   </div>
+   
    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
    <script src="/socket.io/socket.io.js"></script>
    <script src="../../javascripts/script.js"></script>
@@ -51,6 +58,11 @@
    <script>
       const socket = io()
       let username = "<%= user.username %>";
+      
+      function fetchProfile() {
+         window.location.href = "/profile";
+         window.history.pushState({}, "", "/login")
+      }
       
       socket.emit("join", username);
       
@@ -68,8 +80,6 @@
             document.querySelector(".bubbleContainer").innerHTML =""
          }
       })
-   
-   
    
    </script>
 </body>
