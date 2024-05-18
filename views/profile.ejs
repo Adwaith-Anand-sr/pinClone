@@ -13,16 +13,6 @@
    </style>
 </head>
 <body class="w-full h-screen overflow-x-hidden select-none">
-   <nav class="w-full bg-zinc-800 text-zinc-400 shadow absolute z-20 flex items-center justify-end px-[3vw] py-[0.85vh]">
-      <div class="relative">
-         <% if(unReaded.length >0){ %>
-            <div class="notify absolute top-[15%] left-[70%] w-[2vw] h-[2vw] rounded-full bg-red-500"></div>
-         <% }else{ %>
-            <div class="notify absolute top-[15%] left-[70%] w-[2vw] h-[2vw] rounded-full "></div>
-         <% } %>
-         <i onclick="fetchMessage()" class="bi bi-chat-fill text-[1.6rem]"></i> 
-      </div>
-   </nav>
    <main style="background-position: center; background-image: url(<%= user.cover %>); background-size: cover;"  class="w-full h-screen ">
       <div class="design relative overflow-hidden mx-[3%] relative top-[18%] w-[94%] h-[70%] bg-transparent">
          <div class="transparent1 absolute w-[110%] h-[100%] top-[1.35%] rotate-[-2deg] bg-[rgba(0,0,0,0.2)]"></div>
@@ -31,20 +21,27 @@
          <div class="transparent3 absolute top-[25%] left-[-30%] w-[110%] h-[100%] rotate-[18deg] bg-[rgba(0,0,0,0.2)]"></div>
          <div class="absolute w-[130%] h-[130%] ml-[2%] rotate-[65deg] bg-zinc-800 "></div>
          <div class="context text-white pl-[8vw] absolute bottom-0 w-full h-[75%] bg-transparent">
-            <div style="background-position:top center; background-image: url(<%= user.cover %>); background-size: cover;" class="dp relative top-[-3%] w-[10vh] h-[10vh] border rounded-[50%]"></div>
-            <div class="name text-[6.5vw] capitalize font-black tracking-tighter "><%= user.fullname %></div>
+            <div style="background-position:top center; background-image: url(<%= user.dp %>); background-size: cover;" class="dp relative top-[3%] w-[10vh] h-[10vh] border rounded-[50%]"></div>
+            <div class="name text-[6.5vw] mt-[2vh] capitalize font-black tracking-tighter "><%= user.fullname %></div>
             <div class="username text-[3vw] font-black tracking-tighter "><%= user.username %></div>
             <div class="hobbies text-[3vw] font-black tracking-tighter "><%= %></div>
 
-            <div class="ctrlButtons mt-[5vh] mb-[2.5vh] gap-[1vw] font-black ml-[-8vw]  px-[1vw] grid grid-cols-2">
-               <button class="flex shadow h-[6vh] border-black items-center gap-[0.5vw] justify-center border rounded-md">
-                  Add
-                  <i class="bi bi-plus text-[1.5rem]"></i>
-               </button>
-               <button class="flex shadow h-[6vh] items-center gap-[1vw] justify-center border border-black rounded-md">
-                  Messege
-                  <i class="bi bi-chat text-[1.5rem]"></i>
-               </button>
+            <div class="ctrlButtons mt-[3vh] mb-[2.5vh] gap-[1vw] font-black ml-[-8vw]  px-[1vw] grid grid-cols-2">
+               <% if(fetchedUser._id.toString() === user._id.toString() ){ %>
+                  <button onclick="fetchMessage()" class="flex shadow h-[6vh] border-black items-center gap-[2vw] justify-center border rounded-md">
+                     Messege
+                     <i class="bi bi-chat text-[1.5rem]"></i>
+                  </button>
+                  <button onclick="fetchProfileSettings()" class="flex shadow h-[6vh] items-center gap-[2vw] justify-center border border-black rounded-md">
+                     Config
+                     <i class="bi bi-gear text-[1.5rem]"></i>
+                  </button>
+               <% }else { %>
+                  <button class="flex shadow h-[6vh] items-center gap-[1vw] justify-center border border-black rounded-md">
+                     Messege
+                     <i class="bi bi-chat text-[1.5rem]"></i>
+                  </button>
+               <% } %>
             </div>
 
             <div class="dets relative ml-[-4vw] h-[20%] w-full grid grid-cols-3">
@@ -97,18 +94,8 @@
          window.location.reload()
       }
       
-      const socket = io()
-      let username = "<%= user.username %>";
-      socket.emit("join", username);
-      
-      socket.on("notifyMessege", (chat, chats)=>{
-         if(chats.length > 0){
-            let notify = document.querySelector(".notify").classList.add("bg-red-500")
-         }
-      })
       
       let postAddBtn = document.querySelector(".upload button")
-      
       postAddBtn.addEventListener("click",()=>{
          window.location.href = "/upload"
       })
@@ -129,6 +116,26 @@
             window.location.reload();
          },5000)
       }
+      function fetchProfileSettings(){
+         window.location.href = `/profile/settings/<%= user._id %>`
+         document.getElementById("loader").style.display = "flex"
+         setTimeout(()=>{
+            document.getElementById("loader").style.display = "none"
+            window.location.reload();
+         },5000)
+      }
+      
+      
+      // socker.io
+      const socket = io()
+      let username = "<%= user.username %>";
+      socket.emit("join", username);
+      
+      socket.on("notifyMessege", (chat, chats)=>{
+         if(chats.length > 0){
+            let notify = document.querySelector(".notify").classList.add("bg-red-500")
+         }
+      })
       
    </script>
 </body>

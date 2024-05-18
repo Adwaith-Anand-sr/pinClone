@@ -60,7 +60,7 @@
       let username = "<%= user.username %>";
       
       function fetchProfile() {
-         window.location.href = "/profile";
+         window.location.href = "/profile/<%= user._id%>";
          window.history.pushState({}, "", "/login")
       }
       

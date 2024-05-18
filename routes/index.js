@@ -85,10 +85,6 @@ app.get("/", (req, res) => {
    res.redirect("/login");
 });
 
-app.get("/hey", (req, res) => {
-   res.render("profile")
-});
-
 app.get("/register", (req, res) => {
    res.render("register");
    
@@ -98,10 +94,16 @@ app.get("/login", (req, res) => {
    res.render("login");
 });
 
-app.get("/profile",  isLoggedIn, async(req, res) => {
+app.get("/profile/:userId",  isLoggedIn, async(req, res) => {
    let user = await userModel.findOne({username: req.user.username});
+   let fetchedUser = await userModel.findOne({_id: req.params.userId})
    let unReaded = await chatModel.find({receiver: user._id , readed: false});
-   res.render("profile", {user, unReaded});
+   res.render("profile", {user, unReaded, fetchedUser});
+});
+
+app.get("/profile/settings/:userId",  isLoggedIn, async(req, res) => {
+   let user = await userModel.findOne({_id: req.params.userId});
+   res.render("profileSettings", {user});
 });
 
 app.get("/upload",  isLoggedIn, async(req, res) => {
@@ -191,10 +193,54 @@ app.post('/login', async function(req, res, next) {
          let token = jwt.sign({email: existUser.email, username}, "...here the secret")
          res.cookie("token", token)
          req.flash("user", existUser)
-         res.redirect("/profile")
+         res.redirect(`/profile/${existUser._id}`)
       }else return res.status(500).send("invalid username or password.")
    })
 });
+
+app.post("/profile/settings/update/:userId",  upload.fields([{ name: 'cover', maxCount: 1 }, { name: 'profile', maxCount: 1 }]) , isLoggedIn, async (req, res)=>{
+   const coverFile = req.files['cover'];
+   const profileFile = req.files['profile'];
+   if (profileFile) {
+      const file = req.files['profile'][0];
+      const originalname = file.originalname;
+      const ext = path.extname(originalname);
+      const fileName = Date.now() + ext;
+      const fileUpload = bucket.file(fileName);
+      
+      await fileUpload.save(file.buffer, {
+         metadata: {
+            contentType: file.mimetype
+         }
+      });
+      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+      let user = await userModel.findOneAndUpdate({ username: req.user.username, dp: imageUrl });
+      await user.save();
+      console.log("dp uploaded successfully");
+   }
+   if (coverFile) {
+      const file = req.files['cover'][0];
+      const originalname = file.originalname;
+      const ext = path.extname(originalname);
+      const fileName = Date.now() + ext;
+      const fileUpload = bucket.file(fileName);
+      
+      await fileUpload.save(file.buffer, {
+         metadata: {
+            contentType: file.mimetype
+         }
+      });
+      const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
+      let user = await userModel.findOneAndUpdate({ username: req.user.username, cover: imageUrl });
+      await user.save();
+      console.log("cover uploaded successfully");
+   }
+   
+   let user = await userModel.findOne({ username: req.user.username});
+   let userId = user._id.toString()
+   
+   res.redirect(`/profile/${user._id}`);
+})
 
 app.post('/upload', upload.single('image'), isLoggedIn, async (req, res) => {
    try {
@@ -221,7 +267,7 @@ app.post('/upload', upload.single('image'), isLoggedIn, async (req, res) => {
       
       user.posts.push(post._id);
       await user.save();
-      res.redirect("/profile");
+      //res.redirect("/profile");
    } catch (error) {
       console.error('Error uploading image:', error);
       res.status(500).send('Error uploading image.');
