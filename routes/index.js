@@ -171,15 +171,13 @@ app.post("/register", async (req, res)=>{
          bcrypt.hash(password, salt, async (err, hash)=>{
             if (err) res.send(err);
             let user = await userModel.create({username, fullname, password: hash, gender, email});
+            let token = jwt.sign({email, username}, "...here the secret");
+            res.cookie("token", token);
+            setTimeout(async function() {
+               res.redirect(`/profile/${user._id}`);
+            }, 500);
          });
       });
-   let token = jwt.sign({email, username}, "...here the secret");
-   res.cookie("token", token);
-   let user = await userModel.findOne({username});
-   setTimeout(function() {
-   
-   res.redirect(`/profile/${user._id}`);
-   }, 500);
    }else { return res.status(500).send("username alredy exists!!") }
 });
 
