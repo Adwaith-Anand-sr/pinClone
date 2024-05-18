@@ -175,9 +175,10 @@ app.post("/register", async (req, res)=>{
       });
    let token = jwt.sign({email, username}, "...here the secret");
    res.cookie("token", token);
+   let user = await userModel.findOne({username});
    setTimeout(function() {
-      
-   res.redirect("/profile");
+   
+   res.redirect(`/profile/${user._id}`);
    }, 500);
    }else { return res.status(500).send("username alredy exists!!") }
 });
