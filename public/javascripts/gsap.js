@@ -31,18 +31,16 @@ function registerIntro() {
    }, "-=0.15")
 }
 
-
-
-let url = "http://localhost:3000"
-
-
-
-function fetchProfile() {
-   
+function newUpdateInfo() {
+   let tl = gsap.timeline()
+   tl.from("#info .alert",{
+      y: -80,
+      delay: 0.5,
+      duration: 0.5
+   })
+   tl.from("#info .alert span",{
+      y: 80,
+      duration: 0.5
+   },"-=0.2")
 }
-
-gsap.to("loader")
-
-
-xhttp.open("GET", `${url}/hey`, true)
-xhttp.send()
+newUpdateInfo()

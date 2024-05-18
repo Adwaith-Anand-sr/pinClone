@@ -49,6 +49,8 @@ io.on("connection", (socket) => {
       socket.emit('userJoined', users);
    });
    
+   socket.emit("newUpdates", "you can now add/edit profile and cover photos.")
+   
    socket.on("sendMessage", async (message,sender, receiver)=>{
       console.log(message);
       const receiverSocketId = users.find(user => user.username === message.receiver)?.id;
