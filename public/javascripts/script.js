@@ -7,25 +7,6 @@ function scrollToBottom() {
 window.onload = scrollToBottom;
 
 // dynamic files uploading
-document.getElementById('uploadForm').addEventListener('submit', async (event) => {
-   event.preventDefault();
-   const formData = new FormData(event.target);
-   try {
-      const response = await fetch('/upload', {
-         method: 'POST',
-         body: formData
-      });
-      if (response.ok) {
-         console.log('Post uploaded successfully');
-         window.location.href = '/profile'; 
-      } else {
-         console.error('Error uploading image:', response.statusText);
-      }
-   } catch (error) {
-      console.error('Error uploading image:', error);
-   }
-});
-
 
 
 

@@ -9,7 +9,7 @@
 </head>
 <body class="w-full h-screen ">
    <main class="w-full h-screen overflow-x-hidden bg-zinc-900">
-      <nav class="fixed w-full flex gap-[3vw] text-[1.25rem] items-center h-[7%] px-[2vw] bg-[rgba(15,15,16,0.98)]">
+      <nav class="fixed z-50 w-full flex gap-[3vw] text-[1.25rem] items-center h-[7%] px-[2vw] bg-[rgba(15,15,16,1)]">
          <i onclick="goBack()"class="bi bi-arrow-left inline-flex text-white text-[1.3rem] font-black rounded-full items-center justify-center h-[10vw] w-[10vw]"></i>
          <h1 class="text-white font-black tracking-tight">Upload</h1>
       </nav>
@@ -18,9 +18,24 @@
             <% posts.forEach((item)=>{ %>
                <div class="text-white w-[100vw] ">
                   <div class="w-full flex items-center justify-between px-[3vw] bg-black h-[7vh]">
-                     <div class="flex items-center gap-[2vw]">
-                     <img src="<%= user.dp %>" class="w-[10vw] h-[10vw] object-cover bg-center rounded-full bg-orange-600">
-                     <h1><%= user.username %></h1>
+                     <div class="flex w-full items-center justify-between gap-[2vw]">
+                        <div class="flex items-center gap-[2vw]">
+                           <img src="<%= user.dp %>" class="w-[10vw] h-[10vw] object-cover bg-center rounded-full bg-orange-600">
+                           <h1><%= user.username %></h1>
+                        </div>
+                        <div>
+                           <% if(user._id.toString() === fetchedUser._id.toString()){ %>
+                           <div class="dropdown">
+                              <button class="btn btn-secondary dropdown-toggle bg-transparent text-transparent border-none outline-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                 <i class="bi bi-three-dots-vertical text-white"></i>
+                              </button>
+                              <ul class="dropdown-menu">
+                                 <li onclick="deletePost('<%= item._id %>')"><a class="dropdown-item text-white">Delete</a></a>
+                                 <li><a class="dropdown-item text-white" href="#">Hide</a></li>
+                              </ul>
+                           </div>
+                           <% } %>
+                        </div>
                      </div>
                      <% if(item.location){ %>
                      <div class="loc text-zinc-400 text-[0.8rem]">
@@ -48,14 +63,39 @@
 
       </div>
    </main>
-   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-   <script src="/javascripts/script.js"></script>
    
+   <div style="display: none;" id="postUpdateInfo" class="fixed transition top-[80vh] overflow-hidden px-[2vw] py-[1vh] w-full">
+      <div class="alert overflow-hidden alert-warning alert-dismissible fade show text-black text-[3vw] bg-green-400" role="alert">
+        <span class="block"></span>
+      </div>
+   </div>
+   
+   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+   <script src="/socket.io/socket.io.js"></script>
+   <script src="/javascripts/script.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+   <script src="../../javascripts/gsap.js"></script>
    <script>
       function fetchProfile() {
          window.location.href = "/profile";
          window.history.pushState({}, "", "/login")
       }
+      
+      function deletePost(id) {
+         fetch(`/posts/delete/${id}`,{method: 'DELETE' })
+      }
+      
+      const socket = io()
+      let username = "<%= user.username %>";
+      socket.emit("join", username);
+      socket.on("postDeleted", ()=>{
+         document.querySelector("#postUpdateInfo").style.display = "block"
+         document.querySelector("#postUpdateInfo .alert span").textContent = "Post Deleted Successfully."
+         setTimeout(()=>{
+            document.querySelector("#postUpdateInfo .alert span").textContent = ""
+            document.querySelector("#postUpdateInfo").style.display = "none"
+         },2000)
+      })
    </script>
 </body>
 </html>

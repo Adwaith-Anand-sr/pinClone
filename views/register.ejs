@@ -8,51 +8,54 @@
    <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
-<body class="bg-zinc-800 overflow-hidden">
+<body class="bg-zinc-800 overflow-hidden select-none">
    <main id="main" style="display: none; opacity: 0; scale: 0;" class="w-full h-screen font-black bg-black overflow-hidden">
       <div class="w-full h-[25%] bg-black flex items-center justify-center">
          <h1 class="text-[4vh] font-black tracking-tighter text-white">Sign Up</h1>
       </div>
-      <div class="absolute top-[25%] pt-[8vh] bg-white w-full h-[75%] rounded-tl-[80px]">
+      <div class="absolute top-[25%] pt-[8vh] bg-[#121212] text-white w-full h-[75%] rounded-tl-[80px]">
          <form method="post" action="/register" class="font-black">
             <div class="flex px-[8vw] py-[1.5vh] items-center justify-between">
                <label>FullName : </label>
-               <input class="py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="text" name="fullname" placeholder="full name" required>
+               <input class="bg-[#3b3b3b] py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="text" name="fullname" placeholder="full name" required>
             </div>
 
-            <div class="flex px-[8vw] py-[1.5vh] items-center justify-between">
+            <div class="flex px-[8vw] py-[1.5vh] items-top justify-between">
                <label>UserName : </label>
-               <input class="py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="text" name="username" placeholder="user name" required>
+               <div class="flex flex-col gap-[1vh] w-[60%]">
+                  <input pattern="^\S+$" minlength="3" class="bg-[#3b3b3b] py-[0.5vh] w-[100%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="text" name="username" placeholder="user name" required>
+                  <ul class="list-disc pl-[4vw] text-[0.65rem]"> <li>no whitespace</li> <li>atleast 3 charecters</li> </li>
+               </div>
             </div>
 
-            <div class="flex px-[8vw] py-[1.5vh] items-center justify-between">
+            <div class="flex px-[8vw] py-[1vh] items-center justify-between">
                <label>Email : </label>
-               <input class="py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="text" name="email" placeholder="email" required>
+               <input class="bg-[#3b3b3b] py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="text" name="email" placeholder="email" required>
             </div>
 
             <div class="flex px-[8vw] py-[1.5vh] items-center justify-between">
                <label>Password : </label>
-               <input class="py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="password" name="password" placeholder="password" required>
+               <input class="bg-[#3b3b3b] py-[0.5vh] w-[60%] px-[3vw] rounded-md border-[1px] border-zinc-800 outline-none" type="password" name="password" placeholder="password" required>
             </div>
 
             <div class="flex px-[8vw] py-[1.5vh] items-center justify-between">
                <label>Sex : </label>
                <div class="w-[60%] flex text-[3vw] justify-between">
                   <div class="flex items-center gap-[1vw]">
-                     <input type="radio" name="gender" value="male" required> male
+                     <input class="bg-[#3b3b3b] " type="radio" name="gender" value="male" required> male
                   </div>
                   <div class="flex items-center gap-[1vw]">
-                     <input type="radio" name="gender" value="female" required> female
+                     <input class="bg-[#3b3b3b] " type="radio" name="gender" value="female" required> female
                   </div>
                   <div class="flex items-center gap-[1vw]">
-                     <input type="radio" name="gender" value="others" required> others
+                     <input class="bg-[#3b3b3b] " type="radio" name="gender" value="others" required> others
                   </div>
                </div>
             </div>
 
-            <button class="relative left-1/2 -translate-x-1/2 py-[1vh] mt-[4vh] px-[25vw] rounded-[13px] bg-zinc-950 text-white tracking-tight text-[4.5vw]">Register</button>
+            <button class="relative left-1/2 -translate-x-1/2 py-[1vh] mt-[3vh] px-[25vw] rounded-[13px] bg-zinc-950 text-white tracking-tight text-[4.5vw]">Register</button>
          </form>
-         <h2 class="font-semibold inline-block mt-[4vh] relative left-1/2 -translate-x-1/2">Already have an account? <a class="font-black" href="/login">LogIn</a></h2>
+         <h2 class="font-semibold inline-block mt-[3vh] relative left-1/2 -translate-x-1/2">Already have an account? <a class="font-black" href="/login">LogIn</a></h2>
       </div>
    </main>
    

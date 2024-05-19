@@ -44,3 +44,4 @@ function newUpdateInfo() {
    },"-=0.2")
 }
 newUpdateInfo()
+

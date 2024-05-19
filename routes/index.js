@@ -39,8 +39,9 @@ const bucket = admin.storage().bucket();
 
 // socket.io setup
 let users = [];
-
+let socketio 
 io.on("connection", (socket) => {
+   socketio = socket;
    console.log("a user connected");
    socket.join("room1");
    socket.on('join', (username) => {
@@ -49,10 +50,10 @@ io.on("connection", (socket) => {
       socket.emit('userJoined', users);
    });
    
-   socket.emit("newUpdates", "you can now add/edit profile and cover photos.")
+   socket.emit("/*newUpdates*/", "you can now add/edit profile and cover photos.")
    
    socket.on("sendMessage", async (message,sender, receiver)=>{
-      console.log(message);
+      
       const receiverSocketId = users.find(user => user.username === message.receiver)?.id;
       let senderUser = await userModel.findOne({username: message.sender});
       let receiverUser = await userModel.findOne({username: message.receiver});
@@ -80,8 +81,8 @@ io.on("connection", (socket) => {
       socket.emit('userLeft', users);
       console.log('A user disconnected');
    });
-});
 
+});
 
 app.get("/", (req, res) => {
    res.redirect("/login");
@@ -113,10 +114,27 @@ app.get("/upload",  isLoggedIn, async(req, res) => {
    res.render("upload", {user});
 });
 
-app.get("/posts",  isLoggedIn, async(req, res) => {
+app.get("/posts/:userId",  isLoggedIn, async(req, res) => {
    let user = await userModel.findOne({username: req.user.username});
    let posts = await postModel.find({user: user._id});
-   res.render("posts", {user, posts});
+   let fetchedUser = await userModel.findOne({_id: req.params.userId})
+   res.render("posts", {user, posts, fetchedUser});
+});
+
+app.delete("/posts/delete/:postId",  isLoggedIn, async(req, res) => {
+   try{
+      let post = await postModel.findByIdAndDelete(req.params.postId);
+      let updatedUser = await userModel.findOneAndUpdate({username: req.user.username}, { $pull: { posts: req.params.postId } });
+      // const receiverSocketId = users.find(user => user.username === updatedUser.username)?.id;
+      // if (receiverSocketId) {
+      //    socketio.to(receiverSocketId).emit('postDeleted');
+      // }
+      
+   }
+   catch (error) {
+      console.error('Error deleting post:', error);
+      res.status(500).send('Error deleting post.');
+   }
 });
 
 app.get('/feeds', isLoggedIn, async function(req, res, next) {
@@ -215,8 +233,11 @@ app.post("/profile/settings/update/:userId",  upload.fields([{ name: 'cover', ma
          }
       });
       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-      let user = await userModel.findOneAndUpdate({ username: req.user.username, dp: imageUrl });
-      await user.save();
+      let user = await userModel.findOneAndUpdate(
+         { username: req.user.username },
+         { dp: imageUrl }
+      );
+      
       console.log("dp uploaded successfully");
    }
    if (coverFile) {
@@ -232,8 +253,10 @@ app.post("/profile/settings/update/:userId",  upload.fields([{ name: 'cover', ma
          }
       });
       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-      let user = await userModel.findOneAndUpdate({ username: req.user.username, cover: imageUrl });
-      await user.save();
+      let user = await userModel.findOneAndUpdate(
+         { username: req.user.username },
+         { cover: imageUrl }
+      );
       console.log("cover uploaded successfully");
    }
    
@@ -261,14 +284,13 @@ app.post('/upload', upload.single('image'), isLoggedIn, async (req, res) => {
       });
       
       const imageUrl = `https://storage.googleapis.com/${bucket.name}/${fileUpload.name}`;
-      console.log("Post uploaded successfully");
       
       let user = await userModel.findOne({ username: req.user.username });
       let post = await postModel.create({ user: user._id, posts: imageUrl, caption: req.body.caption, location: req.body.location });
       
       user.posts.push(post._id);
       await user.save();
-      //res.redirect("/profile");
+      res.redirect(`/profile/${user._id}`);
    } catch (error) {
       console.error('Error uploading image:', error);
       res.status(500).send('Error uploading image.');
@@ -284,6 +306,8 @@ function isLoggedIn(req, res, next) {
       res.status(401).redirect("/login");
    }
 }
+
+
 
 server.listen(port, () => {
    console.log(`socket.io and app are running on port ${port}`);

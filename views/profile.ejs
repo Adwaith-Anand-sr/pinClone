@@ -13,12 +13,14 @@
    </style>
 </head>
 <body class="w-full h-screen overflow-x-hidden select-none">
-   <div id="info" class="absolute overflow-hidden px-[2vw] py-[1vh] w-full h-[10%]">
+   
+   <div style="display: none;" id="info" class="absolute overflow-hidden px-[2vw] py-[1vh] w-full h-[10%]">
       <div class="alert overflow-hidden alert-warning alert-dismissible fade show text-black text-[3vw] bg-green-400" role="alert">
         <span class="block"> </span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
    </div>
+   
    <main style="background-position: center; background-image: url(<%= user.cover %>); background-size: cover;"  class="w-full h-screen ">
       <div class="design relative overflow-hidden mx-[3%] relative top-[18%] w-[94%] h-[70%] bg-transparent">
          <div class="transparent1 absolute w-[110%] h-[100%] top-[1.35%] rotate-[-2deg] bg-[rgba(0,0,0,0.2)]"></div>
@@ -107,7 +109,7 @@
          window.location.reload()
       }
       function fetchposts(){
-         window.location.href = "/posts"
+         window.location.href = `/posts/<%= user._id%>`
          document.getElementById("loader").style.display = "flex"
          setTimeout(()=>{
             document.getElementById("loader").style.display = "none"
@@ -138,6 +140,7 @@
       socket.emit("join", username);
       
       socket.on("newUpdates", (data)=>{
+         document.querySelector("#info").style.display = "block";
          document.querySelector("#info span").textContent = data;
       })
       
