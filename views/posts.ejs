@@ -16,7 +16,7 @@
       <div id="post-section" class="mt-[13%] w-full flex flex-col gap-[1vh]">
          <% if(user.posts.length >0){%>
             <% posts.forEach((item)=>{ %>
-               <div class="text-white w-[100vw] ">
+               <div data-id="<%= item._id %>" class="text-white w-[100vw] ">
                   <div class="w-full flex items-center justify-between px-[3vw] bg-black h-[7vh]">
                      <div class="flex w-full items-center justify-between gap-[2vw]">
                         <div class="flex items-center gap-[2vw]">
@@ -25,15 +25,15 @@
                         </div>
                         <div>
                            <% if(user._id.toString() === fetchedUser._id.toString()){ %>
-                           <div class="dropdown">
-                              <button class="btn btn-secondary dropdown-toggle bg-transparent text-transparent border-none outline-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                 <i class="bi bi-three-dots-vertical text-white"></i>
-                              </button>
-                              <ul class="dropdown-menu">
-                                 <li onclick="deletePost('<%= item._id %>')"><a class="dropdown-item text-white">Delete</a></a>
-                                 <li><a class="dropdown-item text-white" href="#">Hide</a></li>
-                              </ul>
-                           </div>
+                              <div class="dropdown mr-[-5vw]">
+                                 <button class="btn btn-secondary dropdown-toggle bg-transparent text-transparent border-none outline-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-three-dots-vertical text-white"></i>
+                                 </button>
+                                 <ul class="dropdown-menu bg-zinc-900">
+                                    <li onclick="conformDeletePost('<%= item._id %>')"><a class="dropdown-item text-white">Delete</a></a>
+                                    <li><a class="dropdown-item text-white" href="#">Hide</a></li>
+                                 </ul>
+                              </div>
                            <% } %>
                         </div>
                      </div>
@@ -64,6 +64,12 @@
       </div>
    </main>
    
+   
+   <div style="display: none;" id="deleteConform" class="fixed items-center justify-center flex flex-col gap-[2vh] transition top-[30vh] overflow-hidden px-[2vw] bg-[rgba(0,0,0,0.2)] rounded-lg py-[1vh] w-full h-[25vh]">
+      <h1 class="text-2xl text-white ">Are you sure?</h1>
+      <button id="delBtn" class="px-[8vw] py-[1h] bg-red-600">Delete</button>
+   </div>
+   
    <div style="display: none;" id="postUpdateInfo" class="fixed transition top-[80vh] overflow-hidden px-[2vw] py-[1vh] w-full">
       <div class="alert overflow-hidden alert-warning alert-dismissible fade show text-black text-[3vw] bg-green-400" role="alert">
         <span class="block"></span>
@@ -81,6 +87,15 @@
          window.history.pushState({}, "", "/login")
       }
       
+      function conformDeletePost(id) {
+         let deleteConfirm = document.getElementById("deleteConform").style.display = "flex"
+         let btn = document.getElementById("delBtn")
+         btn.addEventListener("click", ()=>{
+            deletePost(id)
+            deleteConform.style.display = "none"
+         })
+      }
+      
       function deletePost(id) {
          fetch(`/posts/delete/${id}`,{method: 'DELETE' })
       }
@@ -88,12 +103,14 @@
       const socket = io()
       let username = "<%= user.username %>";
       socket.emit("join", username);
-      socket.on("postDeleted", ()=>{
+      socket.on("postDeleted", (post)=>{
+         //const div = document.querySelector(`div[data-id="${post._id}"]`).style.display = "none"
          document.querySelector("#postUpdateInfo").style.display = "block"
          document.querySelector("#postUpdateInfo .alert span").textContent = "Post Deleted Successfully."
          setTimeout(()=>{
             document.querySelector("#postUpdateInfo .alert span").textContent = ""
             document.querySelector("#postUpdateInfo").style.display = "none"
+            window.location.reload()
          },2000)
       })
    </script>

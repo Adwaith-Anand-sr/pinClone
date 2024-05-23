@@ -84,6 +84,9 @@ io.on("connection", (socket) => {
 
 });
 
+app.set('io', io);
+
+
 app.get("/", (req, res) => {
    res.redirect("/login");
 });
@@ -125,10 +128,10 @@ app.delete("/posts/delete/:postId",  isLoggedIn, async(req, res) => {
    try{
       let post = await postModel.findByIdAndDelete(req.params.postId);
       let updatedUser = await userModel.findOneAndUpdate({username: req.user.username}, { $pull: { posts: req.params.postId } });
-      // const receiverSocketId = users.find(user => user.username === updatedUser.username)?.id;
-      // if (receiverSocketId) {
-      //    socketio.to(receiverSocketId).emit('postDeleted');
-      // }
+      const receiverSocketId = users.find(user => user.username === updatedUser.username)?.id;
+      if (receiverSocketId) {
+         io.to(receiverSocketId).emit('postDeleted', post);
+      }
       
    }
    catch (error) {
